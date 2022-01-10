@@ -9,7 +9,9 @@ make && make install
 ln -s /usr/local/python3/bin/python3.9 /usr/bin/python3 
 ln -s /usr/local/python3/bin/pip3.9 /usr/bin/pip3
 /usr/local/python3/bin/python3.9 -m pip install --upgrade pip
+cd ..
 cd feature_judge_template/
 pip3 install -r requirements.txt
-python3 00_064MP.py
+cd code
+python3 ./00_064MP.py
 

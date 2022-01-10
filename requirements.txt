@@ -4,3 +4,4 @@ statsmodels==0.12.2
 matplotlib==3.3.3
 changepy==0.3.1
 jenkspy==0.2.0
+apache-iotdb==0.12.1

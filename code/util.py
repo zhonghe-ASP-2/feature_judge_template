@@ -2,6 +2,7 @@ import datetime
 import matplotlib.pyplot as plt
 import json
 import pandas as pd
+import time
 
 def ts_info(timeseries):
     # 注意传入的是以时间为index的 Parse_data格式的参数
@@ -208,18 +209,37 @@ def read_config(config_path):
         'T06_range': T06_range,
         'T_used': T_used
     }
-    return trend_config, threshold_config, timeseries_config_raw["resample_fre"]
+    return trend_config, threshold_config, timeseries_config_raw, timeseries_config_raw["resample_fre"]
 
-def read_timeseries(timeseries_path, resample_frequency):
+def read_timeseries(timeseries_path, timeseries_config, resample_frequency):
     timestamp = []
     timeseries_value = []
+    end_time = timeseries_config["time_point"]
+    end_time = time.mktime(time.strptime(end_time, "%Y-%m-%d %H:%M:%S"))
+    start_time = end_time - timeseries_config["trend_range_day"]*24*3600
 
+
+    start_index = -1
+    end_index = -1
     with open(timeseries_path, "r") as f:
         for line_number, line in enumerate(f.readlines()):
             if line_number == 0:
                 timeseries_name = line.split(',')[1]
                 timeseries_name = timeseries_name.replace('\n', '')
             else:
+                values = line.split(',')
+                values[0] = values[0].strip('\n')
+                if start_time < time.mktime(time.strptime(values[0], "%Y-%m-%dT%H:%M:%S.000+08:00")) and start_index == -1:
+                    start_index = line_number
+                if time.mktime(time.strptime(values[0], "%Y-%m-%dT%H:%M:%S.000+08:00")) < end_time:
+                    end_index = line_number
+
+    with open(timeseries_path, "r") as f:
+        for line_number, line in enumerate(f.readlines()):
+            if line_number == 0:
+                timeseries_name = line.split(',')[1]
+                timeseries_name = timeseries_name.replace('\n', '')
+            elif line_number > start_index and line_number < end_index:
                 values = line.split(',')
                 values[0] = values[0].strip('\n')
                 values[1] = values[1].strip('\n')
