@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import json
 import pandas as pd
 import time
+from iotdb.Session import *
 
 def ts_info(timeseries):
     # 注意传入的是以时间为index的 Parse_data格式的参数
@@ -221,6 +222,7 @@ def read_timeseries(timeseries_path, timeseries_config, resample_frequency):
 
     start_index = -1
     end_index = -1
+    # 可以使用二分的方法优化区间取数的复杂度
     with open(timeseries_path, "r") as f:
         for line_number, line in enumerate(f.readlines()):
             if line_number == 0:
@@ -233,6 +235,8 @@ def read_timeseries(timeseries_path, timeseries_config, resample_frequency):
                     start_index = line_number
                 if time.mktime(time.strptime(values[0], "%Y-%m-%dT%H:%M:%S.000+08:00")) < end_time:
                     end_index = line_number
+                if time.mktime(time.strptime(values[0], "%Y-%m-%dT%H:%M:%S.000+08:00")) > end_time:
+                    break
 
     with open(timeseries_path, "r") as f:
         for line_number, line in enumerate(f.readlines()):
@@ -252,3 +256,51 @@ def read_timeseries(timeseries_path, timeseries_config, resample_frequency):
     df_analyze = df_analyze.resample(resample_frequency).mean().ffill()
     return df_analyze
 
+
+def get_start_end_time(timeseries_path, data_source):
+    if data_source == "csv":
+        with open(timeseries_path, "r") as f:
+            lines = f.readlines()
+            start_time = lines[1]
+            end_time = lines[-1]
+            start_time = start_time.split(',')
+            end_time = end_time.split(',')
+            start_time[0] = start_time[0].strip('\n')
+            end_time[1] = end_time[1].strip('\n')
+            return time.mktime(time.strptime(start_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00")), \
+                   time.mktime(time.strptime(end_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00"))
+    elif data_source == "iotdb":
+        sql = "select "+ timeseries_path+" from root.CNNP."+timeseries_path[:2]+".ID order by time desc limit 1;"
+        ip = "127.0.0.1"
+        port_ = "6667"
+        username_ = 'root'
+        password_ = 'root'
+        session = Session(ip, port_, username_, password_)
+        session.open(False)
+        df = session.execute_query_statement(sql).todf()
+        end_time = df.loc[0][0]
+        sql = "select " + timeseries_path + " from root.CNNP." + timeseries_path[:2] + ".ID order by time asc limit 1;"
+        start_time = session.execute_query_statement(sql).todf().loc[0][0]
+        return start_time, end_time
+
+def read_timeseries_iotdb(timeseries_sql, resample_frequency):
+    timestamp = []
+    timeseries_value = []
+
+    ip = "127.0.0.1"
+    port_ = "6667"
+    username_ = 'root'
+    password_ = 'root'
+    session = Session(ip, port_, username_, password_)
+    session.open(False)
+    df = session.execute_query_statement(timeseries_sql).todf()
+
+    time_index = ['' for i in range(len(df[df.columns[0]]))]
+    for i in range(len(time_index)):
+        time_index[i] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(df[df.columns[0]][i] / 1000))
+
+    df_analyze = pd.DataFrame(data=df[df.columns[1]].values, index=time_index, columns=[df.columns[1]])
+
+    df_analyze = pd.Series(df_analyze.iloc[:, 0].values, index=pd.DatetimeIndex(df_analyze.index))
+    # df_analyze = df_analyze.resample(resample_frequency).mean().ffill()
+    return df_analyze

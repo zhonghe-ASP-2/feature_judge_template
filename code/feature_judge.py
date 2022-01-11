@@ -95,7 +95,7 @@ def judge_monotonicity(timeseries):
 
 
 
-def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, Dplot):
+def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, Dplot, start_time):
     # 判断准则 ： trend_features_inputdata
     # 时序序列 ： df_analyze
     # 时序序列在iotdb中的路径名：valuename
@@ -134,13 +134,13 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
     ts_numeric = pd.to_numeric(df_analyze)
     print('==>>>用于趋势判断的时序数据：')
     if Dplot == 'yes':
-        timeseries_plot(ts_numeric, 'g', valuename+'_oir', pathsave=DPlot_dir)
-
+        timeseries_plot(ts_numeric, 'g', start_time.split(' ')[0]+" "+valuename+'_oir'+"", pathsave=DPlot_dir)
+    Dplot = 'no'
     trend_feature_vector = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     ADF_pvalue_tf = 'unknown'
     print('序列的平稳性检验(ADF检验结)果为：')
-    test_result = ADF(ts_numeric)
+    test_result = ADF(ts_numeric.dropna(inplace = False))
     p_value = test_result[1]
     print('p-value:', p_value)
     if p_value >= ADF_pvalue:
@@ -166,10 +166,12 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             print('--原始序列是平稳不变序列')
             trend_feature_vector[12 - 1] = 1  # 失效特征趋势：平稳震荡的 ,s_04=1
 
-    if sum(trend_feature_vector) == 0:
+    print("aotu judge: ", sum(trend_feature_vector))
+    if True or sum(trend_feature_vector)  == 0:
         ts_numeric_z = ts_numeric.rolling(window=int(z_window)).median()
         ts_numeric_z = ts_numeric_z.dropna(inplace=False)
-        if Dplot == 'yes': timeseries_plot(ts_numeric_z, 'g', valuename + '_aotu',
+
+        timeseries_plot(ts_numeric_z, 'g', valuename + '_aotu',
                                            pathsave=DPlot_dir)
         if z_judge(ts_numeric_z):
             trend_feature_vector[9 - 1] = 1
@@ -178,7 +180,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             trend_feature_vector[8 - 1] = 1
             print("该时间序列为凹形，先降后增")
 
-    if sum(trend_feature_vector) == 0:
+    if True or sum(trend_feature_vector) == 0:
         ts_numeric_vibrate = ts_numeric.rolling(window=int(vibrate_window)).median()
         ts_numeric_vibrate = ts_numeric_vibrate.dropna(inplace=False)
         if Dplot == 'yes': timeseries_plot(ts_numeric_vibrate, 'g', valuename + '_vibrate', pathsave=DPlot_dir)
@@ -188,7 +190,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
         elif vibrate_flag == 0:
             trend_feature_vector[10-1] = 1
 
-    if sum(trend_feature_vector) == 0:
+    if True or sum(trend_feature_vector) == 0:
         ts_numeric_monotonicity = ts_numeric
         ts_numeric_monotonicity = ts_numeric.rolling(window=int(monotonicity_window)).median()
         ts_numeric_monotonicity = ts_numeric_monotonicity.dropna(inplace=False)
@@ -214,9 +216,10 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                 for v in breaks:
                     idx = ts_numeric_monotonicity.index[ts_numeric_monotonicity == v][-1]
                     breaks_jkp.append(idx)
+                Dplot = 'yes'
                 if Dplot == 'yes':
-                    timeseries_segment_plot(ts_numeric_monotonicity, breaks_jkp, valuename + '_segment', pathsave=DPlot_dir)
-
+                    timeseries_segment_plot(ts_numeric_monotonicity, breaks_jkp, start_time.split(' ')[0]+" "+valuename + '_segment', pathsave=DPlot_dir)
+                Dplot = 'no'
 
                 temp = breaks_jkp.copy()
                 break_index = [-1 for i in range(len(breaks_jkp))]
@@ -226,7 +229,8 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                 breaks_copy = breaks
                 breaks = []
                 for i in range(len(breaks_copy)):
-                    breaks.append(breaks_copy[break_index.index(i)])
+                    if i in break_index:
+                        breaks.append(breaks_copy[break_index.index(i)])
 
                 print(breaks)
                 print(breaks_jkp)
@@ -339,6 +343,78 @@ def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_d
             os._exit()
     mean_value = np.mean(df_analyze)
 
+    if not T_used[3-1] == 0:
+        if mean_value >= T03_range[0] and mean_value <= T03_range[1]:
+            t_tf[3-1]=1
+    if not T_used[2-1] == 0:
+        if mean_value >= T02_range[0] and mean_value <= T02_range[1]:
+            t_tf[2-1]=1
+    if not T_used[1-1] == 0:
+        if mean_value >= T01_range[0] and mean_value <= T01_range[1]:
+            t_tf[1-1]=1
+    if not T_used[4-1] == 0:
+        if mean_value >= T04_range[0] and mean_value <= T04_range[1]:
+            t_tf[4-1]=1
+    if not T_used[5-1] == 0:
+        if mean_value >= T05_range[0] and mean_value <= T05_range[1]:
+            t_tf[5-1]=1
+    if not T_used[6-1] == 0:
+        if mean_value >= T06_range[0] and mean_value <= T06_range[1]:
+            t_tf[6-1]=1
+    print('阈值征兆向量:', t_tf)
+    return t_tf
+
+
+def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_dir,Dplot):
+    # 判断准则 ： threshold_features_inputdata
+    # 时序序列 ： df_analyze
+    # 时序序列在iotdb中的路径名：valuename
+    # 调试输出路径：DPlot_dir
+    # 调试输出判断：Dplot
+
+    print('==>>>数据测点：%s'%(valuename))
+    T03_range = threshold_features_inputdata['T03_range']   #高高高
+    T02_range = threshold_features_inputdata['T02_range']   # 高高
+    T01_range = threshold_features_inputdata['T01_range']   # 高
+    T04_range = threshold_features_inputdata['T04_range']   #低
+    T05_range = threshold_features_inputdata['T05_range']   #低低
+    T06_range = threshold_features_inputdata['T06_range']   #低低低
+
+    # 若不落在以上区域中，均为正常
+    T_used    = threshold_features_inputdata['T_used']
+
+    t_tf = [0, 0, 0, 0, 0, 0]
+
+    ts_numeric = pd.to_numeric(df_analyze)
+    print('==>>>用于阈值判断的时序数据：')
+    tsinfo = ts_info(ts_numeric)
+    # 阈值判断区间是否合理
+    ranking=[]
+    if not T_used[3-1] == 0:
+        ranking.append(T03_range[1])
+        ranking.append(T03_range[0])
+    if not T_used[2-1] == 0:
+        ranking.append(T02_range[1])
+        ranking.append(T02_range[0])
+    if not T_used[1-1] == 0:
+        ranking.append(T01_range[1])
+        ranking.append(T01_range[0])
+    if not T_used[4-1] == 0:
+        ranking.append(T04_range[1])
+        ranking.append(T04_range[0])
+    if not T_used[5-1] == 0:
+        ranking.append(T05_range[1])
+        ranking.append(T05_range[0])
+    if not T_used[6-1] == 0:
+        ranking.append(T06_range[1])
+        ranking.append(T06_range[0])
+
+    for i in range(np.size(ranking)-1):
+        if ranking[i] < ranking[i+1]:
+            print('Error：检查各失效阈值的判定区间是否满足规律要求！（T3>T2>T1>T4>T5>T6）')
+            os._exit()
+    mean_value = np.mean(df_analyze)
+    print(mean_value)
     if not T_used[3-1] == 0:
         if mean_value >= T03_range[0] and mean_value <= T03_range[1]:
             t_tf[3-1]=1
