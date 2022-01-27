@@ -34,26 +34,44 @@ if __name__ == "__main__":
         history_start_time, history_end_time = get_start_end_time(timeseries_path, data_source, {})
     elif data_source == "iotdb":
         history_start_time, history_end_time = get_start_end_time(timeseries_name, data_source, iotdb_config)
-    history_start_time = history_start_time + one_day * timeseries_config["trend_range_day"] * 1000
+
 
 
     failure_segments = [['2019-04-20 00:00:00', '2019-06-20 00:00:00'],
 
                        ]
+    fix_segments = [
+        ["2015-10-15 20:00:45", "2015-12-06 13:28:06"],
+        ["2016-06-24 00:00:00", "2016-07-02 00:00:00"],
+        ["2016-09-15 00:00:00", "2016-10-15 00:00:00"],
+        ["2017-09-10 00:00:00", "2017-10-14 00:00:00"],
+        ["2019-03-15 00:00:00", "2019-04-15 00:00:00"],
+        ["2020-10-10 00:00:00", "2020-11-14 00:00:00"],
+    ]
     failure_metric_x = []
     failure_metric_y = []
 
     # 遍历窗口的终止时间
     for watch_day in range(6, 61, 6):
         timeseries_config["trend_range_day"] = watch_day
+        history_start_time_ = history_start_time + one_day * timeseries_config["trend_range_day"] * 1000
         tot = 0
         drop = 0
         right = 0
-        for end_time in range(int(history_start_time), int(history_end_time), one_day * slide_step * 1000):
+        for end_time in range(int(history_start_time_), int(history_end_time), one_day * slide_step * 1000):
             end_time /= 1000
             timeseries_config["end_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
             timeseries_config["start_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(
                 end_time - one_day * timeseries_config["trend_range_day"]))
+            has_fix_time = False
+            for fix_segment in fix_segments:
+                if (timeseries_config["start_time"] > fix_segment[0] and timeseries_config["start_time"] <
+                    fix_segment[1]) or (
+                        timeseries_config["end_time"] > fix_segment[0] and timeseries_config["end_time"] <
+                        fix_segment[1]):
+                    has_fix_time = True
+            if has_fix_time:
+                continue
             print("回测的时间段：{} {}".format(timeseries_config["start_time"], timeseries_config["end_time"]))
             if data_source == "csv":
                 timeseries = read_timeseries(timeseries_path, timeseries_config, str(resample_frequency) + "min")
