@@ -241,7 +241,10 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                     for i in range(1, len(breaks)):
                         if breaks[i] > breaks[i-1]:
                             # 目前的时间单位为小时，不知道以后是否需要变成可配置项
-                            slope = abs((breaks[i]-breaks[i-1])/((breaks_jkp[i]-breaks_jkp[i-1]).days*24+(breaks_jkp[i]-breaks_jkp[i-1]).seconds/60/60))
+                            if abs(((breaks_jkp[i]-breaks_jkp[i-1]).days*24+(breaks_jkp[i]-breaks_jkp[i-1]).seconds/60/60)) > 0:
+                                slope = abs((breaks[i]-breaks[i-1])/((breaks_jkp[i]-breaks_jkp[i-1]).days*24+(breaks_jkp[i]-breaks_jkp[i-1]).seconds/60/60))
+                            else:
+                                slope = 0
                             rise_slope.append(slope)
                         elif breaks[i-1] > breaks[i]:
                             slope = abs((breaks[i-1] - breaks[i]) / ((breaks_jkp[i] - breaks_jkp[i-1]).days * 24 + (
