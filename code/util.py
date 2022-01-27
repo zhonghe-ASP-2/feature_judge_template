@@ -257,7 +257,7 @@ def read_timeseries(timeseries_path, timeseries_config, resample_frequency):
     return df_analyze
 
 
-def get_start_end_time(timeseries_path, data_source):
+def get_start_end_time(timeseries_path, data_source, iotdb_config):
     if data_source == "csv":
         with open(timeseries_path, "r") as f:
             lines = f.readlines()
@@ -270,28 +270,28 @@ def get_start_end_time(timeseries_path, data_source):
             return time.mktime(time.strptime(start_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00")), \
                    time.mktime(time.strptime(end_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00"))
     elif data_source == "iotdb":
-        sql = "select "+ timeseries_path+" from root.CNNP."+timeseries_path[:2]+".ID order by time desc limit 1;"
-        ip = "127.0.0.1"
-        port_ = "6667"
-        username_ = 'root'
-        password_ = 'root'
-        session = Session(ip, port_, username_, password_)
+        sql = "select "+ timeseries_path+" from root.CNNP."+timeseries_path[:2]+"."+timeseries_path[3:5]+" order by time desc limit 1;"
+        ip_ = iotdb_config["ip"]
+        port_ = iotdb_config["port"]
+        username_ = iotdb_config["username"]
+        password_ = iotdb_config["passwd"]
+        session = Session(ip_, port_, username_, password_)
         session.open(False)
         df = session.execute_query_statement(sql).todf()
         end_time = df.loc[0][0]
-        sql = "select " + timeseries_path + " from root.CNNP." + timeseries_path[:2] + ".ID order by time asc limit 1;"
+        sql = "select " + timeseries_path + " from root.CNNP." + timeseries_path[:2] + "."+timeseries_path[3:5]+" order by time asc limit 1;"
         start_time = session.execute_query_statement(sql).todf().loc[0][0]
         return start_time, end_time
 
-def read_timeseries_iotdb(timeseries_sql, resample_frequency):
+def read_timeseries_iotdb(timeseries_sql, resample_frequency, iotdb_config):
     timestamp = []
     timeseries_value = []
 
-    ip = "127.0.0.1"
-    port_ = "6667"
-    username_ = 'root'
-    password_ = 'root'
-    session = Session(ip, port_, username_, password_)
+    ip_ = iotdb_config["ip"]
+    port_ = iotdb_config["port"]
+    username_ = iotdb_config["username"]
+    password_ = iotdb_config["passwd"]
+    session = Session(ip_, port_, username_, password_)
     session.open(False)
     df = session.execute_query_statement(timeseries_sql).todf()
 

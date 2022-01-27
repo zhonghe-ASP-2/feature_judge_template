@@ -140,15 +140,16 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
 
     ADF_pvalue_tf = 'unknown'
     print('序列的平稳性检验(ADF检验结)果为：')
-    test_result = ADF(ts_numeric.dropna(inplace = False))
-    p_value = test_result[1]
-    print('p-value:', p_value)
-    if p_value >= ADF_pvalue:
-        print('--原始序列是非平稳序列')
-        ADF_pvalue_tf = 'unstationary'
-    else:
-        print('--原始序列是平稳序列')
-        ADF_pvalue_tf = 'stationary'
+    if len(ts_numeric) > 2:
+        test_result = ADF(ts_numeric.dropna(inplace = False))
+        p_value = test_result[1]
+        print('p-value:', p_value)
+        if p_value >= ADF_pvalue:
+            print('--原始序列是非平稳序列')
+            ADF_pvalue_tf = 'unstationary'
+        else:
+            print('--原始序列是平稳序列')
+            ADF_pvalue_tf = 'stationary'
     if ADF_pvalue_tf == 'stationary':
         print('标准差判断：')
         # std_value = np.std(ts_numeric, ddof=1)
@@ -167,7 +168,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             trend_feature_vector[12 - 1] = 1  # 失效特征趋势：平稳震荡的 ,s_04=1
 
     print("aotu judge: ", sum(trend_feature_vector))
-    if True or sum(trend_feature_vector)  == 0:
+    if sum(trend_feature_vector)  == 0:
         ts_numeric_z = ts_numeric.rolling(window=int(z_window)).median()
         ts_numeric_z = ts_numeric_z.dropna(inplace=False)
 
@@ -205,44 +206,47 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             if segment_method == "jenkspy":
                 y = np.array(list(ts_numeric_monotonicity.values))
                 # 返回的是分段的具体的值
-                breaks = jenkspy.jenks_breaks(y, nb_class = classification_number)
-                print(breaks)
-                # if abs(breaks[0] -ts_numeric_monotonicity[0]) > 0.1 and :
-                #     breaks.append(ts_numeric_monotonicity.values[0])
-                # if abs(breaks[-1] -ts_numeric_monotonicity[-1]) > 0.1:
-                #     breaks.append(ts_numeric_monotonicity.values[-1])
-                breaks_jkp = []
-                print(breaks)
-                for v in breaks:
-                    idx = ts_numeric_monotonicity.index[ts_numeric_monotonicity == v][-1]
-                    breaks_jkp.append(idx)
-                Dplot = 'yes'
-                if Dplot == 'yes':
-                    timeseries_segment_plot(ts_numeric_monotonicity, breaks_jkp, start_time.split(' ')[0]+" "+valuename + '_segment', pathsave=DPlot_dir)
-                Dplot = 'no'
+                print("分段段数：{}".format(min(classification_number, len(y)-1)))
+                if len(y) > 2:
 
-                temp = breaks_jkp.copy()
-                break_index = [-1 for i in range(len(breaks_jkp))]
-                breaks_jkp.sort()
-                for i in range(len(breaks_jkp)):
-                    break_index[temp.index(breaks_jkp[i])] = i
-                breaks_copy = breaks
-                breaks = []
-                for i in range(len(breaks_copy)):
-                    if i in break_index:
-                        breaks.append(breaks_copy[break_index.index(i)])
+                    breaks = jenkspy.jenks_breaks(y, nb_class = min(classification_number, 2))
+                    print(breaks)
+                    # if abs(breaks[0] -ts_numeric_monotonicity[0]) > 0.1 and :
+                    #     breaks.append(ts_numeric_monotonicity.values[0])
+                    # if abs(breaks[-1] -ts_numeric_monotonicity[-1]) > 0.1:
+                    #     breaks.append(ts_numeric_monotonicity.values[-1])
+                    breaks_jkp = []
+                    print(breaks)
+                    for v in breaks:
+                        idx = ts_numeric_monotonicity.index[ts_numeric_monotonicity == v][-1]
+                        breaks_jkp.append(idx)
+                    Dplot = 'yes'
+                    if Dplot == 'yes':
+                        timeseries_segment_plot(ts_numeric_monotonicity, breaks_jkp, start_time.split(' ')[0]+" "+valuename + '_segment', pathsave=DPlot_dir)
+                    Dplot = 'no'
 
-                print(breaks)
-                print(breaks_jkp)
-                for i in range(1, len(breaks)):
-                    if breaks[i] > breaks[i-1]:
-                        # 目前的时间单位为小时，不知道以后是否需要变成可配置项
-                        slope = abs((breaks[i]-breaks[i-1])/((breaks_jkp[i]-breaks_jkp[i-1]).days*24+(breaks_jkp[i]-breaks_jkp[i-1]).seconds/60/60))
-                        rise_slope.append(slope)
-                    elif breaks[i-1] > breaks[i]:
-                        slope = abs((breaks[i-1] - breaks[i]) / ((breaks_jkp[i] - breaks_jkp[i-1]).days * 24 + (
-                                    breaks_jkp[i] - breaks_jkp[i-1]).seconds / 60 / 60))
-                        drop_slope.append(slope)
+                    temp = breaks_jkp.copy()
+                    break_index = [-1 for i in range(len(breaks_jkp))]
+                    breaks_jkp.sort()
+                    for i in range(len(breaks_jkp)):
+                        break_index[temp.index(breaks_jkp[i])] = i
+                    breaks_copy = breaks
+                    breaks = []
+                    for i in range(len(breaks_copy)):
+                        if i in break_index:
+                            breaks.append(breaks_copy[break_index.index(i)])
+
+                    print(breaks)
+                    print(breaks_jkp)
+                    for i in range(1, len(breaks)):
+                        if breaks[i] > breaks[i-1]:
+                            # 目前的时间单位为小时，不知道以后是否需要变成可配置项
+                            slope = abs((breaks[i]-breaks[i-1])/((breaks_jkp[i]-breaks_jkp[i-1]).days*24+(breaks_jkp[i]-breaks_jkp[i-1]).seconds/60/60))
+                            rise_slope.append(slope)
+                        elif breaks[i-1] > breaks[i]:
+                            slope = abs((breaks[i-1] - breaks[i]) / ((breaks_jkp[i] - breaks_jkp[i-1]).days * 24 + (
+                                        breaks_jkp[i] - breaks_jkp[i-1]).seconds / 60 / 60))
+                            drop_slope.append(slope)
 
         rise_slope_max = max(rise_slope)
 

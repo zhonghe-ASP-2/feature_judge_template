@@ -19,7 +19,7 @@
   },
   "S03": {"rise_range": 0.01},
 
-  "S05": {"drop_range": 0.0003472},
+  "S05": {"drop_range": 1},
   "S06": {
     "drop_range": 1e9
   },
