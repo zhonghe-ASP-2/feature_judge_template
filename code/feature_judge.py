@@ -167,7 +167,6 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             print('--原始序列是平稳不变序列')
             trend_feature_vector[12 - 1] = 1  # 失效特征趋势：平稳震荡的 ,s_04=1
 
-    print("aotu judge: ", sum(trend_feature_vector))
     if sum(trend_feature_vector)  == 0:
         ts_numeric_z = ts_numeric.rolling(window=int(z_window)).median()
         ts_numeric_z = ts_numeric_z.dropna(inplace=False)
@@ -181,7 +180,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             trend_feature_vector[8 - 1] = 1
             print("该时间序列为凹形，先降后增")
 
-    if True or sum(trend_feature_vector) == 0:
+    if sum(trend_feature_vector) == 0:
         ts_numeric_vibrate = ts_numeric.rolling(window=int(vibrate_window)).median()
         ts_numeric_vibrate = ts_numeric_vibrate.dropna(inplace=False)
         if Dplot == 'yes': timeseries_plot(ts_numeric_vibrate, 'g', valuename + '_vibrate', pathsave=DPlot_dir)
@@ -191,7 +190,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
         elif vibrate_flag == 0:
             trend_feature_vector[10-1] = 1
 
-    if True or sum(trend_feature_vector) == 0:
+    if sum(trend_feature_vector) == 0:
         ts_numeric_monotonicity = ts_numeric
         ts_numeric_monotonicity = ts_numeric.rolling(window=int(monotonicity_window)).median()
         ts_numeric_monotonicity = ts_numeric_monotonicity.dropna(inplace=False)
@@ -210,20 +209,17 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                 if len(y) > 2:
 
                     breaks = jenkspy.jenks_breaks(y, nb_class = min(classification_number, 2))
-                    print(breaks)
                     # if abs(breaks[0] -ts_numeric_monotonicity[0]) > 0.1 and :
                     #     breaks.append(ts_numeric_monotonicity.values[0])
                     # if abs(breaks[-1] -ts_numeric_monotonicity[-1]) > 0.1:
                     #     breaks.append(ts_numeric_monotonicity.values[-1])
                     breaks_jkp = []
-                    print(breaks)
                     for v in breaks:
                         idx = ts_numeric_monotonicity.index[ts_numeric_monotonicity == v][-1]
                         breaks_jkp.append(idx)
                     Dplot = 'yes'
                     if Dplot == 'yes':
                         timeseries_segment_plot(ts_numeric_monotonicity, breaks_jkp, start_time.split(' ')[0]+" "+valuename + '_segment', pathsave=DPlot_dir)
-                    Dplot = 'no'
 
                     temp = breaks_jkp.copy()
                     break_index = [-1 for i in range(len(breaks_jkp))]
