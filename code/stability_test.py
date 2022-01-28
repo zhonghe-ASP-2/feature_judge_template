@@ -10,7 +10,7 @@ if __name__ == "__main__":
     timeseries_name = "QF_01_1RCP604MP_AVALUE"
     # option: iotdb, csv
     # 推荐使用iotdb, csv是全量读入非常的慢
-    data_source = "csv"
+    data_source = "iotdb"
     iotdb_config = {
         "ip": "127.0.0.1",
         "port": "6667",
@@ -90,16 +90,14 @@ if __name__ == "__main__":
             if data_source == "csv":
                 timeseries = read_timeseries(timeseries_path, timeseries_config, str(resample_frequency) + "min")
             elif data_source == "iotdb":
-                timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='60.0m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
+                timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='"+str(resample_frequency)+"m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
                                                                                                                                          :2] + "." + timeseries_name[
                                                                                                                                                      3:5]
                 timeseries_sql = timeseries_sql + " where time < " + timeseries_config["end_time"] + " and time > " + \
                                  timeseries_config["start_time"] + ";"
                 timeseries = read_timeseries_iotdb(timeseries_sql, resample_frequency, iotdb_config)
             Dplot = 'yes'
-            # Dplot = 'no'
-            if timeseries_config["start_time"] == "2015-11-03 07:01:23":
-                print(timeseries)
+
             s_tf = trend_features(timeseries, timeseries_name, trend_config, image_path, Dplot,
                                   timeseries_config["start_time"])
             # print(s_tf)

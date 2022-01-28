@@ -82,7 +82,7 @@ if __name__ == "__main__":
         if data_source == "csv":
             timeseries = read_timeseries(timeseries_path, timeseries_config, str(resample_frequency) + "min")
         elif data_source == "iotdb":
-            timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='720.0m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
+            timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='"+str(resample_frequency)+"m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
                                                                                                                                 :2] + "." + timeseries_name[3:5]
             timeseries_sql = timeseries_sql + " where time < " + timeseries_config["end_time"] + " and time > " + \
                              timeseries_config["start_time"] + ";"
