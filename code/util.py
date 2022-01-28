@@ -267,8 +267,8 @@ def get_start_end_time(timeseries_path, data_source, iotdb_config):
             end_time = end_time.split(',')
             start_time[0] = start_time[0].strip('\n')
             end_time[1] = end_time[1].strip('\n')
-            return time.mktime(time.strptime(start_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00")), \
-                   time.mktime(time.strptime(end_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00"))
+            return time.mktime(time.strptime(start_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00"))*1000, \
+                   time.mktime(time.strptime(end_time[0], "%Y-%m-%dT%H:%M:%S.000+08:00"))*1000
     elif data_source == "iotdb":
         sql = "select "+ timeseries_path+" from root.CNNP."+timeseries_path[:2]+"."+timeseries_path[3:5]+" order by time desc limit 1;"
         ip_ = iotdb_config["ip"]

@@ -10,7 +10,7 @@ if __name__ == "__main__":
     timeseries_name = "QF_01_1RCP604MP_AVALUE"
     # option: iotdb, csv
     # 推荐使用iotdb, csv是全量读入非常的慢
-    data_source = "iotdb"
+    data_source = "csv"
     iotdb_config = {
         "ip": "127.0.0.1",
         "port": "6667",
