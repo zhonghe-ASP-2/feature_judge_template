@@ -312,7 +312,7 @@ def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_d
     T06_range = threshold_features_inputdata['T06_range']   #低低低
 
     # 若不落在以上区域中，均为正常
-    T_used    = threshold_features_inputdata['T_used']
+    T_used = threshold_features_inputdata['T_used']
 
     t_tf = [0, 0, 0, 0, 0, 0]
 

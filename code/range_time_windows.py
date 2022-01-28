@@ -37,10 +37,12 @@ if __name__ == "__main__":
         history_start_time, history_end_time = get_start_end_time(timeseries_name, data_source, iotdb_config)
     history_start_time = history_start_time + 25*one_day*timeseries_config["trend_range_day"]*1000
 
+    # 故障时间段
     failure_segments = [['2019-04-20 00:00:00', '2019-06-20 00:00:00'],
 
                         ]
 
+    # 大修时间段
     fix_segments = [
         ["2015-10-15 20:00:45", "2015-12-06 13:28:06"],
         ["2016-06-24 00:00:00", "2016-07-02 00:00:00"],
@@ -56,15 +58,15 @@ if __name__ == "__main__":
         timeseries_config["end_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
         timeseries_config["start_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time-one_day*timeseries_config["trend_range_day"]))
 
-        # has_fix_time = False
-        # for fix_segment in fix_segments:
-        #     if (timeseries_config["start_time"] > fix_segment[0] and timeseries_config["start_time"] <
-        #         fix_segment[1]) or (
-        #             timeseries_config["end_time"] > fix_segment[0] and timeseries_config["end_time"] <
-        #             fix_segment[1]):
-        #         has_fix_time = True
-        # if has_fix_time:
-        #     continue
+        has_fix_time = False
+        for fix_segment in fix_segments:
+            if (timeseries_config["start_time"] > fix_segment[0] and timeseries_config["start_time"] <
+                fix_segment[1]) or (
+                    timeseries_config["end_time"] > fix_segment[0] and timeseries_config["end_time"] <
+                    fix_segment[1]):
+                has_fix_time = True
+        if has_fix_time:
+            continue
 
         print("回测的时间段：{} {}".format(timeseries_config["start_time"], timeseries_config["end_time"]))
         if data_source == "csv":
@@ -92,7 +94,7 @@ if __name__ == "__main__":
 
         tot += 1
 
-    print("总测试窗口的大小：{}".format(tot))
+    print("总测试窗口个数：{}".format(tot))
     print("满足单调缓慢下降次数：{}".format(drop))
     print("正确次数：{}".format(right))
 

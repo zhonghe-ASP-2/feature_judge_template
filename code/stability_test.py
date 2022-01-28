@@ -36,10 +36,12 @@ if __name__ == "__main__":
         history_start_time, history_end_time = get_start_end_time(timeseries_name, data_source, iotdb_config)
 
 
-
+    # 失效时间段
     failure_segments = [['2019-04-20 00:00:00', '2019-06-20 00:00:00'],
 
                        ]
+
+    # 大修时间段
     fix_segments = [
         ["2015-10-15 20:00:45", "2015-12-06 13:28:06"],
         ["2016-06-24 00:00:00", "2016-07-02 00:00:00"],
