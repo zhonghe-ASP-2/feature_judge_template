@@ -64,6 +64,7 @@ if __name__ == "__main__":
             if (timeseries_config["start_time"] > fix_segment[0] and timeseries_config["start_time"] <
                 fix_segment[1]) or (
                     timeseries_config["end_time"] > fix_segment[0] and timeseries_config["end_time"] <
+                    fix_segment[1]) or (timeseries_config["start_time"] < fix_segment[0] and timeseries_config["end_time"] >
                     fix_segment[1]):
                 has_fix_time = True
         if has_fix_time:
@@ -72,6 +73,8 @@ if __name__ == "__main__":
             if (timeseries_config["start_time"] > failure_segment[0] and timeseries_config["start_time"] <
                 failure_segment[1]) or (
                     timeseries_config["end_time"] > failure_segment[0] and timeseries_config["end_time"] <
+                    failure_segment[1]) or (
+                    timeseries_config["start_time"] < failure_segment[0] and timeseries_config["end_time"] >
                     failure_segment[1]):
                 expect_right_time += 1
 
@@ -95,7 +98,9 @@ if __name__ == "__main__":
                 if (timeseries_config["start_time"] > failure_segment[0] and timeseries_config["start_time"] <
                     failure_segment[1]) or (
                         timeseries_config["end_time"] > failure_segment[0] and timeseries_config["end_time"] <
-                        failure_segment[1]):
+                        failure_segment[1]) or (
+                    timeseries_config["start_time"] < failure_segment[0] and timeseries_config["end_time"] >
+                    failure_segment[1]):
                     right += 1
             print('\033[0;35;46m {}, {} \033[0m'.format(timeseries_config["start_time"], timeseries_config["end_time"]))
         tot += 1
