@@ -30,7 +30,7 @@ if __name__ == "__main__":
         end_time_unix_time = time.mktime(time.strptime(end_time_str, "%Y-%m-%d %H:%M:%S"))
         start_time_unix_time = end_time_unix_time - timeseries_config["trend_range_day"] * 24 * 3600
         start_time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time_unix_time))
-        timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='720.0m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
+        timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='"+str(resample_frequency)+"m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
                                                                                                                                  :2] + "." + timeseries_name[
                                                                                                                                              3:5]
         timeseries_sql = timeseries_sql + " where time < " + end_time_str + " and time > " + \
