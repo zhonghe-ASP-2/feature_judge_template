@@ -31,6 +31,7 @@ if __name__ == "__main__":
     tot = 0
     drop = 0
     right = 0
+    expect_right_time = 0
     if data_source == "csv":
         history_start_time, history_end_time = get_start_end_time(timeseries_path, data_source, {})
     elif data_source == "iotdb":
@@ -67,6 +68,12 @@ if __name__ == "__main__":
                 has_fix_time = True
         if has_fix_time:
             continue
+        for failure_segment in failure_segments:
+            if (timeseries_config["start_time"] > failure_segment[0] and timeseries_config["start_time"] <
+                failure_segment[1]) or (
+                    timeseries_config["end_time"] > failure_segment[0] and timeseries_config["end_time"] <
+                    failure_segment[1]):
+                expect_right_time += 1
 
         print("回测的时间段：{} {}".format(timeseries_config["start_time"], timeseries_config["end_time"]))
         if data_source == "csv":
@@ -91,10 +98,11 @@ if __name__ == "__main__":
                         failure_segment[1]):
                     right += 1
             print('\033[0;35;46m {}, {} \033[0m'.format(timeseries_config["start_time"], timeseries_config["end_time"]))
-
         tot += 1
 
     print("总测试窗口个数：{}".format(tot))
     print("满足单调缓慢下降次数：{}".format(drop))
+    print("期待预警的次数：{}".format(expect_right_time))
     print("正确次数：{}".format(right))
+    print("预警/期待比率: {:.2f}".format(right/expect_right_time))
 
