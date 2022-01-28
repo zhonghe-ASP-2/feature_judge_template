@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     # 遍历整个时间段，从而获取时间序列的误报率
     one_day = 60*60*24
-    slide_step = 10
+    slide_step = 1
     tot = 0
     drop = 0
     right = 0
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         history_start_time, history_end_time = get_start_end_time(timeseries_path, data_source, {})
     elif data_source == "iotdb":
         history_start_time, history_end_time = get_start_end_time(timeseries_name, data_source, iotdb_config)
-    history_start_time = history_start_time + 25*one_day*timeseries_config["trend_range_day"]*1000
+    history_start_time = history_start_time + one_day*timeseries_config["trend_range_day"]*1000
 
     # 故障时间段
     failure_segments = [['2019-04-20 00:00:00', '2019-06-20 00:00:00'],
