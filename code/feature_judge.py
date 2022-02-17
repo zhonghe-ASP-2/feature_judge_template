@@ -15,7 +15,7 @@ from util import *
 from changepy import pelt
 from changepy.costs import normal_mean
 import jenkspy
-
+from sklearn.linear_model import LinearRegression
 # 认为一分钟内被分割的点都是在同一段变化的区间
 window_size = 60
 
@@ -246,12 +246,30 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                             slope = abs((breaks[i-1] - breaks[i]) / ((breaks_jkp[i] - breaks_jkp[i-1]).days * 24 + (
                                         breaks_jkp[i] - breaks_jkp[i-1]).seconds / 60 / 60))
                             drop_slope.append(slope)
+            #直接线性拟合判断斜率
+            elif segment_method == "linear":
+                y = np.array(list(ts_numeric_monotonicity.values))
+                y = np.array(y).reshape(-1, 1)
+                x = []
+                for i in range(len(y)):
+                    x.append(i)
+                x = np.array(x).reshape(-1, 1)
+                model = LinearRegression()
+                model.fit(x, y)
+                slope = model.coef_
+                print("拟合斜率：",slope)
+                if slope > 0:
+                    rise_slope_max = slope
+                    drop_slope_max = 0
+                else:
+                    rise_slope_max = 0
+                    drop_slope_max = abs(slope)
 
-        rise_slope_max = max(rise_slope)
+        #rise_slope_max = max(rise_slope)
+        #drop_slope_max = max(drop_slope)
+        #print("上升斜率队列：", rise_slope)
+        #print("下降斜率队列：", drop_slope)
 
-        drop_slope_max = max(drop_slope)
-        print("上升斜率队列：", rise_slope)
-        print("下降斜率队列：", drop_slope)
         if drop_slope_max >= S07_drop_range:
             trend_feature_vector[7-1] = 1
         elif drop_slope_max >= S06_drop_range:
