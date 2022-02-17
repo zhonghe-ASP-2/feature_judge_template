@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # 推荐使用iotdb, csv是全量读入非常的慢
     data_source = "iotdb"
     iotdb_config = {
-        "ip": "127.0.0.1",
+        "ip": "10.101.66.13",
         "port": "6667",
         "username": 'root',
         "passwd": 'root'
