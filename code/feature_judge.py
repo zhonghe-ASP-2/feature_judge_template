@@ -246,6 +246,10 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                             slope = abs((breaks[i-1] - breaks[i]) / ((breaks_jkp[i] - breaks_jkp[i-1]).days * 24 + (
                                         breaks_jkp[i] - breaks_jkp[i-1]).seconds / 60 / 60))
                             drop_slope.append(slope)
+                rise_slope_max = max(rise_slope)
+                drop_slope_max = max(drop_slope)
+                print("上升斜率队列：", rise_slope)
+                print("下降斜率队列：", drop_slope)
             #直接线性拟合判断斜率
             elif segment_method == "linear":
                 y = np.array(list(ts_numeric_monotonicity.values))
@@ -265,10 +269,7 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
                     rise_slope_max = 0
                     drop_slope_max = abs(slope)
 
-        #rise_slope_max = max(rise_slope)
-        #drop_slope_max = max(drop_slope)
-        #print("上升斜率队列：", rise_slope)
-        #print("下降斜率队列：", drop_slope)
+
 
         if drop_slope_max >= S07_drop_range:
             trend_feature_vector[7-1] = 1
