@@ -435,25 +435,27 @@ def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_d
         if ranking[i] < ranking[i+1]:
             print('Error：检查各失效阈值的判定区间是否满足规律要求！（T3>T2>T1>T4>T5>T6）')
             os._exit()
-    mean_value = np.mean(df_analyze)
-    print(mean_value)
+    # 将原来的平均数的方法改成中位数
+    # mean_value = np.mean(df_analyze)
+    median_value = np.mean(df_analyze)
+    print(median_value)
     if not T_used[3-1] == 0:
-        if mean_value >= T03_range[0] and mean_value <= T03_range[1]:
+        if median_value >= T03_range[0] and median_value <= T03_range[1]:
             t_tf[3-1]=1
     if not T_used[2-1] == 0:
-        if mean_value >= T02_range[0] and mean_value <= T02_range[1]:
+        if median_value >= T02_range[0] and median_value <= T02_range[1]:
             t_tf[2-1]=1
     if not T_used[1-1] == 0:
-        if mean_value >= T01_range[0] and mean_value <= T01_range[1]:
+        if median_value >= T01_range[0] and median_value <= T01_range[1]:
             t_tf[1-1]=1
     if not T_used[4-1] == 0:
-        if mean_value >= T04_range[0] and mean_value <= T04_range[1]:
+        if median_value >= T04_range[0] and median_value <= T04_range[1]:
             t_tf[4-1]=1
     if not T_used[5-1] == 0:
-        if mean_value >= T05_range[0] and mean_value <= T05_range[1]:
+        if median_value >= T05_range[0] and median_value <= T05_range[1]:
             t_tf[5-1]=1
     if not T_used[6-1] == 0:
-        if mean_value >= T06_range[0] and mean_value <= T06_range[1]:
+        if median_value >= T06_range[0] and median_value <= T06_range[1]:
             t_tf[6-1]=1
     print('阈值征兆向量:', t_tf)
     return t_tf
