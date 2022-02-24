@@ -1,7 +1,7 @@
 from feature_judge import *
 
 import sys
-sys.path.append("../code")
+sys.path.append("../code_for_test")
 from util import *
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller as ADF
