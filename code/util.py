@@ -47,7 +47,7 @@ def ts_info(timeseries):
         ts_start1 = ts_start1._repr_base
         ts_start1 = ts_start1.split('.')[0]
         ts_start1 = datetime.datetime.strptime(ts_start1, '%Y-%m-%d %H:%M:%S')  # 格式化时间字符串 --> datetime对象时间格式
-        ts_step=ts_start1 - ts_start
+        ts_step = ts_start1 - ts_start
     print('timeseries time step is:', ts_step)
 
     # tsinfo = pd.DataFrame({
