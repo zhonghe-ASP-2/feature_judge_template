@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # timeseries_name = "064MP"
     timeseries_name = "QF_01_1RCP604MP_AVALUE"
     # option: iotdb, csv
-    data_source = "iotdb"
+    data_source = "csv"
     iotdb_config = {
         "ip": "10.101.66.13",
         "port": "6667",

@@ -1,0 +1,34 @@
+{
+
+  "S04": {
+    "std": 0.05
+  },
+  "S12": {
+    "std": 10
+  },
+  "S08": {
+
+  },
+  "S09": {
+
+  },
+
+  "S01": {"rise_range": 0.05},
+  "S02": {
+    "rise_range": 0.05
+  },
+  "S03": {"rise_range": 0.01},
+
+  "S05": {"drop_range": 1},
+  "S06": {
+    "drop_range": 1e9
+  },
+  "S07": {"drop_range": 1e9},
+
+  "S10": {
+    "window_size": 740
+  },
+  "S11": {
+    "window_size": 100
+  }
+}
