@@ -33,7 +33,7 @@ def show(ori_func, ft, images, sampling_period = 1):
     plt.close()
 
 if __name__ == "__main__":
-    timeseries_name = "QF_01_1RCP604MP_AVALUE"
+    timeseries_name = "QF_02_2RCP704MP_AVALUE"
     # option: iotdb, csv
     # 推荐使用iotdb, csv是全量读入非常的慢
     data_source = "iotdb"
@@ -70,20 +70,18 @@ if __name__ == "__main__":
     history_start_time = history_start_time + one_day*timeseries_config["trend_range_day"]*1000
 
     # 故障时间段
-    failure_segments = [['2019-04-20 00:00:00', '2019-06-20 00:00:00'],
+    failure_segments = [['2016-02-20 00:00:00', '2016-11-20 00:00:00'],
 
                         ]
 
     # 大修时间段
     fix_segments = [
-        ["2014-11-14 00:00:00", "2014-11-18 00:00:00"],
-        ["2015-10-15 20:00:45", "2015-12-06 13:28:06"],
-        ["2016-06-24 00:00:00", "2016-07-02 00:00:00"],
-        ["2016-09-15 00:00:00", "2016-10-15 00:00:00"],
-        ["2017-09-10 00:00:00", "2017-10-14 00:00:00"],
-        ["2019-03-15 00:00:00", "2019-04-15 00:00:00"],
-
-        ["2020-10-10 00:00:00", "2020-11-14 00:00:00"],
+        ["2014-10-01 00:00:00", "2015-01-28 00:00:00"],
+        ["2015-12-09 11:00:00", "2016-02-10 10:06:40"],
+        ["2016-12-22 00:00:00", "2017-01-19 00:00:00"],
+        ["2017-11-29 04:13:20", "2018-01-03 14:13:20"],
+        ["2019-05-31 07:46:40", "2019-06-28 16:20:00"],
+        ["2021-01-24 00:40:00", "2021-02-28 05:06:40"]
     ]
     # 遍历窗口的终止时间
 
@@ -112,7 +110,7 @@ if __name__ == "__main__":
                     failure_segment[1]) or (
                     timeseries_config["start_time"] < failure_segment[0] and timeseries_config["end_time"] >
                     failure_segment[1]):
-
+                expect_right_time += 1
                 has_failure_time = True
         if has_failure_time:
             continue
@@ -123,15 +121,17 @@ if __name__ == "__main__":
         elif data_source == "iotdb":
             timeseries_sql = "select re_sample(" + timeseries_name + ", 'every'='"+str(resample_frequency)+"m', 'interp'='linear')" + " from root.CNNP." + timeseries_name[
                                                                                                                                 :2] + "." + timeseries_name[3:5]
+            print(timeseries_sql)
             # timeseries_sql = "select " + timeseries_name + " from root.CNNP." + timeseries_name[
             #                                                                           :2] + "." + timeseries_name[3:5]
             timeseries_sql = timeseries_sql + " where time < " + timeseries_config["end_time"] + " and time > " + \
-                             timeseries_config["start_time"] + " and "+timeseries_name+" > 0 ;"
+                             timeseries_config["start_time"] + ";"
             timeseries = read_timeseries_iotdb(timeseries_sql, resample_frequency, iotdb_config)
         Dplot = 'yes'
         # Dplot = 'no'
 
         timeseries = pd.to_numeric(timeseries)
+        print(len(timeseries))
         if(len(timeseries) < 10):
             continue
         transformed = np.fft.fft(timeseries)
@@ -139,8 +139,8 @@ if __name__ == "__main__":
         nfft = abs(transformed[range(int(n / 2))] / n)
         hz = min(hz, int(n/2)-1)
         samples.append(abs(nfft[:hz+1]))
-        # tot += 1
-
+        tot += 1
+    print("总测试窗口个数：{}".format(tot))
     print("满足单调缓慢下降次数：{}".format(alarm_time))
     if hz < 10:
         print("有时候采样率不够，之后的推理没有到10HZ")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
             # timeseries_sql = "select " + timeseries_name + " from root.CNNP." + timeseries_name[
             #                                                                           :2] + "." + timeseries_name[3:5]
             timeseries_sql = timeseries_sql + " where time < " + timeseries_config["end_time"] + " and time > " + \
-                             timeseries_config["start_time"] + " and "+timeseries_name+" > 0 ;"
+                             timeseries_config["start_time"] + ";"
             timeseries = read_timeseries_iotdb(timeseries_sql, resample_frequency, iotdb_config)
 
         timeseries = pd.to_numeric(timeseries)
@@ -248,22 +248,16 @@ if __name__ == "__main__":
         independent_events.append(independent_result)
 
         time_segment.append(timeseries_config["start_time"])
-        tot += 1
 
     print(time_segment)
     print(independent_events_a_possibility)
-    # 往前看三个事件
     print(results)
     print(independent_events)
-    print(expect_right_time)
-    print(tot)
 
     file = open('results.pickle', 'wb')
     pickle.dump(time_segment, file)
-    # 独立事件的连乘
     pickle.dump(independent_events_a_possibility, file)
     pickle.dump(results, file)
-    # 最原始的概率分布
     pickle.dump(independent_events, file)
     file.close()
 
