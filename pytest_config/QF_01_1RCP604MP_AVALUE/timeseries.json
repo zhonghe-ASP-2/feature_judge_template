@@ -1,0 +1,17 @@
+{
+    "time_type": "past",
+    "replay_multiple": -1,
+    "resample_method": "average",
+    "trend_range_day": 20,
+    "resample_fre": 60,
+    "vibrate_window": 20,
+    "monotonicity_window": 10,
+    "z_window": 10,
+    "slope_method": "slope",
+    "segment_method": "jenkspy",
+    "classification_number": 4,
+    "id_monitor": "1RCP604MP",
+    "threshold_range_day": 0.01,
+    "ADF_pvalue": 0.05,
+    "time_point": "2019-05-20 00:00:00"
+}

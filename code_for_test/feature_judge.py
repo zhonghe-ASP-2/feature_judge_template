@@ -8,6 +8,8 @@
 import sys
 import os
 import json
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.stattools import adfuller as ADF
@@ -49,15 +51,18 @@ def timeseries_represent(timeseries):
             pre = 0
         diff1.append(sign(timeseries[_]-timeseries[_-1], pre))
 
+
     return diff1
 
 def z_judge(timeseries):
     timeseries = timeseries_represent(timeseries)
     flag = 0
     for i in range(len(timeseries)):
-        if flag == 0 and timeseries[i] == 0:
+        if flag == 0 and timeseries[i] == 1:
+            flag = 1
+        elif flag == 1 and timeseries[i] == 0:
             flag = 2
-        if flag == 2 and timeseries[i] == 1:
+        elif flag == 2 and timeseries[i] == 1:
             return False
     if flag == 2:
         return True
@@ -68,11 +73,13 @@ def inverse_z_judge(timeseries):
     timeseries = timeseries_represent(timeseries)
     flag = 0
     for i in range(len(timeseries)):
-        if flag == 0 and timeseries[i] == 1:
+        if flag == 0 and timeseries[i] == 0:
             flag = 1
-        if flag == 1 and timeseries[i] == 0:
+        elif flag == 1 and timeseries[i] == 1:
+            flag = 2
+        elif flag == 2 and timeseries[i] == 0:
             return False
-    if flag == 1:
+    if flag == 2:
         return True
     else:
         return False
@@ -164,8 +171,8 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
             trend_feature_vector[4 - 1] = 1  # 失效特征趋势：平稳不变 ,s_04=1
         if sum(trend_feature_vector) == 0 and mad_value < S12_std:
             print('--标准差：%f,小于下限：%f' % (mad_value, S12_std))
-            print('--原始序列是平稳不变序列')
-            trend_feature_vector[12 - 1] = 1  # 失效特征趋势：平稳震荡的 ,s_04=1
+            print('--原始序列是平稳震荡序列')
+            trend_feature_vector[12 - 1] = 1  # 失效特征趋势：平稳震荡的 ,s_12=1
 
     if sum(trend_feature_vector)  == 0:
         ts_numeric_z = ts_numeric.rolling(window=int(z_window)).median()
@@ -315,76 +322,76 @@ def trend_features(df_analyze, valuename, trend_features_inputdata, DPlot_dir, D
     return trend_feature_vector
 
 
-def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_dir,Dplot):
-    # 判断准则 ： threshold_features_inputdata
-    # 时序序列 ： df_analyze
-    # 时序序列在iotdb中的路径名：valuename
-    # 调试输出路径：DPlot_dir
-    # 调试输出判断：Dplot
-
-    print('==>>>数据测点：%s'%(valuename))
-    T03_range = threshold_features_inputdata['T03_range']   #高高高
-    T02_range = threshold_features_inputdata['T02_range']   # 高高
-    T01_range = threshold_features_inputdata['T01_range']   # 高
-    T04_range = threshold_features_inputdata['T04_range']   #低
-    T05_range = threshold_features_inputdata['T05_range']   #低低
-    T06_range = threshold_features_inputdata['T06_range']   #低低低
-
-    # 若不落在以上区域中，均为正常
-    T_used = threshold_features_inputdata['T_used']
-
-    t_tf = [0, 0, 0, 0, 0, 0]
-
-    ts_numeric = pd.to_numeric(df_analyze)
-    print('==>>>用于阈值判断的时序数据：')
-    tsinfo = ts_info(ts_numeric)
-    # 阈值判断区间是否合理
-    ranking=[]
-    if not T_used[3-1] == 0:
-        ranking.append(T03_range[1])
-        ranking.append(T03_range[0])
-    if not T_used[2-1] == 0:
-        ranking.append(T02_range[1])
-        ranking.append(T02_range[0])
-    if not T_used[1-1] == 0:
-        ranking.append(T01_range[1])
-        ranking.append(T01_range[0])
-    if not T_used[4-1] == 0:
-        ranking.append(T04_range[1])
-        ranking.append(T04_range[0])
-    if not T_used[5-1] == 0:
-        ranking.append(T05_range[1])
-        ranking.append(T05_range[0])
-    if not T_used[6-1] == 0:
-        ranking.append(T06_range[1])
-        ranking.append(T06_range[0])
-
-    for i in range(np.size(ranking)-1):
-        if ranking[i] < ranking[i+1]:
-            print('Error：检查各失效阈值的判定区间是否满足规律要求！（T3>T2>T1>T4>T5>T6）')
-            os._exit()
-    mean_value = np.mean(df_analyze)
-
-    if not T_used[3-1] == 0:
-        if mean_value >= T03_range[0] and mean_value <= T03_range[1]:
-            t_tf[3-1]=1
-    if not T_used[2-1] == 0:
-        if mean_value >= T02_range[0] and mean_value <= T02_range[1]:
-            t_tf[2-1]=1
-    if not T_used[1-1] == 0:
-        if mean_value >= T01_range[0] and mean_value <= T01_range[1]:
-            t_tf[1-1]=1
-    if not T_used[4-1] == 0:
-        if mean_value >= T04_range[0] and mean_value <= T04_range[1]:
-            t_tf[4-1]=1
-    if not T_used[5-1] == 0:
-        if mean_value >= T05_range[0] and mean_value <= T05_range[1]:
-            t_tf[5-1]=1
-    if not T_used[6-1] == 0:
-        if mean_value >= T06_range[0] and mean_value <= T06_range[1]:
-            t_tf[6-1]=1
-    print('阈值征兆向量:', t_tf)
-    return t_tf
+# def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_dir,Dplot):
+#     # 判断准则 ： threshold_features_inputdata
+#     # 时序序列 ： df_analyze
+#     # 时序序列在iotdb中的路径名：valuename
+#     # 调试输出路径：DPlot_dir
+#     # 调试输出判断：Dplot
+#
+#     print('==>>>数据测点：%s'%(valuename))
+#     T03_range = threshold_features_inputdata['T03_range']   #高高高
+#     T02_range = threshold_features_inputdata['T02_range']   # 高高
+#     T01_range = threshold_features_inputdata['T01_range']   # 高
+#     T04_range = threshold_features_inputdata['T04_range']   #低
+#     T05_range = threshold_features_inputdata['T05_range']   #低低
+#     T06_range = threshold_features_inputdata['T06_range']   #低低低
+#
+#     # 若不落在以上区域中，均为正常
+#     T_used = threshold_features_inputdata['T_used']
+#
+#     t_tf = [0, 0, 0, 0, 0, 0]
+#
+#     ts_numeric = pd.to_numeric(df_analyze)
+#     print('==>>>用于阈值判断的时序数据：')
+#     tsinfo = ts_info(ts_numeric)
+#     # 阈值判断区间是否合理
+#     ranking=[]
+#     if not T_used[3-1] == 0:
+#         ranking.append(T03_range[1])
+#         ranking.append(T03_range[0])
+#     if not T_used[2-1] == 0:
+#         ranking.append(T02_range[1])
+#         ranking.append(T02_range[0])
+#     if not T_used[1-1] == 0:
+#         ranking.append(T01_range[1])
+#         ranking.append(T01_range[0])
+#     if not T_used[4-1] == 0:
+#         ranking.append(T04_range[1])
+#         ranking.append(T04_range[0])
+#     if not T_used[5-1] == 0:
+#         ranking.append(T05_range[1])
+#         ranking.append(T05_range[0])
+#     if not T_used[6-1] == 0:
+#         ranking.append(T06_range[1])
+#         ranking.append(T06_range[0])
+#
+#     for i in range(np.size(ranking)-1):
+#         if ranking[i] < ranking[i+1]:
+#             print('Error：检查各失效阈值的判定区间是否满足规律要求！（T3>T2>T1>T4>T5>T6）')
+#             os._exit()
+#     mean_value = np.mean(df_analyze)
+#
+#     if not T_used[3-1] == 0:
+#         if mean_value >= T03_range[0] and mean_value <= T03_range[1]:
+#             t_tf[3-1]=1
+#     if not T_used[2-1] == 0:
+#         if mean_value >= T02_range[0] and mean_value <= T02_range[1]:
+#             t_tf[2-1]=1
+#     if not T_used[1-1] == 0:
+#         if mean_value >= T01_range[0] and mean_value <= T01_range[1]:
+#             t_tf[1-1]=1
+#     if not T_used[4-1] == 0:
+#         if mean_value >= T04_range[0] and mean_value <= T04_range[1]:
+#             t_tf[4-1]=1
+#     if not T_used[5-1] == 0:
+#         if mean_value >= T05_range[0] and mean_value <= T05_range[1]:
+#             t_tf[5-1]=1
+#     if not T_used[6-1] == 0:
+#         if mean_value >= T06_range[0] and mean_value <= T06_range[1]:
+#             t_tf[6-1]=1
+#     print('阈值征兆向量:', t_tf)
+#     return t_tf
 
 
 def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_dir,Dplot):
@@ -430,7 +437,7 @@ def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_d
     if not T_used[6-1] == 0:
         ranking.append(T06_range[1])
         ranking.append(T06_range[0])
-
+    print(ranking)
     for i in range(np.size(ranking)-1):
         if ranking[i] < ranking[i+1]:
             print('Error：检查各失效阈值的判定区间是否满足规律要求！（T3>T2>T1>T4>T5>T6）')
@@ -461,57 +468,57 @@ def threshold_features(df_analyze,valuename,threshold_features_inputdata,DPlot_d
     return t_tf
 
 
-if __name__ == '__main__':
-    jsonfile ={
-        'rolmean_window4vibrate': 20,   # type：int; 降噪平均的滑窗窗口长度,不能超过数据个数，用于判断震动，建议给的小一些
-        'rolmean_window4monotonicity':50,  # type：int; 降噪平均的滑窗窗口长度,不能超过数据个数，用于判断单调性，可适当稍大
-        'monotonicity_peakvalleys':20,  # type：int; 单调性加窗滤波后，单调性序列允许的最大波峰波谷数（该值取1，表示严格单调）
-        'ADF_pvalue':0.05,          # type：float;ADF 检验时的p-value
-
-        'S04': {'std_lower':0.10},    # type：float; 判断是否稳定不变时用到得方差上限
-        'S12': {'vibrate_range': 0.05,'vibrate_rate': 0.05},  # type：float; 判定为震荡时用到得四分位距下限（四分位距相对于均值的百分比）
-                                                              # type：float; 振荡条件时，波峰波谷数目占总数据点数的比例（滤去小波后）
-
-        'S11': {'drop_range': 0.01, 'vibrate_rate': 0.09},   # type：float; 波动下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
-                                                             # type：float; 波动下降时，波峰波谷数目占总数据点数的比例（滤去小波后）
-        'S10': {'rise_range': 0.01, 'vibrate_rate': 0.05},   # type：float; 波动上升时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
-                                                             # type：float; 波动上升时，波峰波谷数目占总数据点数的比例（滤去小波后）
-        'S01': {'rise_range': 0.05},   # type：float; 单调快速上升时，上升幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
-        'S02': {},
-        'S03': {'rise_range': 0.01},   # type：float; 单调缓慢上升时，上升幅度（起点减终点绝对值）占起点绝对值的比例应小于这个数
-
-        'S05': {'drop_range': 0.04},   # type：float; 单调快速下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个
-        'S06': {},
-        'S07': {'drop_range': 0.05},   # type：float; 单调缓慢下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应小于这个
-
-        'S08': {'range': [0.01, 0.99]},  # type:floatlist; 单凸峰值所处的相对位置
-        'S09': {'range': [0.01, 0.99]},  # type:floatlist; 单凹峰值所处的相对位置
-    }
-
-    with open("trend.json", "w") as f:
-        json.dump(jsonfile, f)
-        print("加载入文件完成...")
-
-    # jsonfile = { # for FQ1RCP604MP
-    #     'T03': {'lower': 10000001, 'upper': 10000002, },  # type：float; 高高高，上限建议给默认的极大值
-    #     'T02': {'lower': 10000000, 'upper': 10000001, },       # type：float; 高高
-    #     'T01': {'lower': 100, 'upper': 10000000, },       # type：float; 高
-    #     'T04': {'lower': -1000001, 'upper':-1000000, },       # type：float; 低
-    #     'T05': {'lower': -1000003, 'upper': -1000002, },       # type：float; 低低
-    #     'T06': {'lower': -1000005, 'upper': -1000004, }, # type：float; 低低低，下限建议给默认的极小值
-    #     'T_used':[1,1,1,1,1,1]   # type：int; 使用到的征兆通道给非零值
-    # }
-
-    jsonfile = {  # for 1APA136MT_1
-        'T03': {'lower': 1000003, 'upper': 1000004, },  # type：float; 高高高，上限建议给默认的极大值
-        'T02': {'lower': 1000001, 'upper': 1000002, },  # type：float; 高高
-        'T01': {'lower': 100, 'upper': 1000000, },  # type：float; 高
-        'T04': {'lower': 4.7, 'upper': 5, },  # type：float; 低
-        'T05': {'lower': 4.5, 'upper': 4.7, },  # type：float; 低低
-        'T06': {'lower': -1000005, 'upper': 4.5, },  # type：float; 低低低，下限建议给默认的极小值
-        'T_used': [1, 0, 0, 0, 0, 0]  # type：int; 使用到的征兆通道给非零值
-    }
-
-    with open("threshold.json", "w") as f:
-        json.dump(jsonfile, f)
-        print("加载入文件完成...")
+# if __name__ == '__main__':
+#     jsonfile ={
+#         'rolmean_window4vibrate': 20,   # type：int; 降噪平均的滑窗窗口长度,不能超过数据个数，用于判断震动，建议给的小一些
+#         'rolmean_window4monotonicity':50,  # type：int; 降噪平均的滑窗窗口长度,不能超过数据个数，用于判断单调性，可适当稍大
+#         'monotonicity_peakvalleys':20,  # type：int; 单调性加窗滤波后，单调性序列允许的最大波峰波谷数（该值取1，表示严格单调）
+#         'ADF_pvalue':0.05,          # type：float;ADF 检验时的p-value
+#
+#         'S04': {'std_lower':0.10},    # type：float; 判断是否稳定不变时用到得方差上限
+#         'S12': {'vibrate_range': 0.05,'vibrate_rate': 0.05},  # type：float; 判定为震荡时用到得四分位距下限（四分位距相对于均值的百分比）
+#                                                               # type：float; 振荡条件时，波峰波谷数目占总数据点数的比例（滤去小波后）
+#
+#         'S11': {'drop_range': 0.01, 'vibrate_rate': 0.09},   # type：float; 波动下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
+#                                                              # type：float; 波动下降时，波峰波谷数目占总数据点数的比例（滤去小波后）
+#         'S10': {'rise_range': 0.01, 'vibrate_rate': 0.05},   # type：float; 波动上升时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
+#                                                              # type：float; 波动上升时，波峰波谷数目占总数据点数的比例（滤去小波后）
+#         'S01': {'rise_range': 0.05},   # type：float; 单调快速上升时，上升幅度（起点减终点绝对值）占起点绝对值的比例应大于这个数
+#         'S02': {},
+#         'S03': {'rise_range': 0.01},   # type：float; 单调缓慢上升时，上升幅度（起点减终点绝对值）占起点绝对值的比例应小于这个数
+#
+#         'S05': {'drop_range': 0.04},   # type：float; 单调快速下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应大于这个
+#         'S06': {},
+#         'S07': {'drop_range': 0.05},   # type：float; 单调缓慢下降时，下降幅度（起点减终点绝对值）占起点绝对值的比例应小于这个
+#
+#         'S08': {'range': [0.01, 0.99]},  # type:floatlist; 单凸峰值所处的相对位置
+#         'S09': {'range': [0.01, 0.99]},  # type:floatlist; 单凹峰值所处的相对位置
+#     }
+#
+#     with open("trend.json", "w") as f:
+#         json.dump(jsonfile, f)
+#         print("加载入文件完成...")
+#
+#     # jsonfile = { # for FQ1RCP604MP
+#     #     'T03': {'lower': 10000001, 'upper': 10000002, },  # type：float; 高高高，上限建议给默认的极大值
+#     #     'T02': {'lower': 10000000, 'upper': 10000001, },       # type：float; 高高
+#     #     'T01': {'lower': 100, 'upper': 10000000, },       # type：float; 高
+#     #     'T04': {'lower': -1000001, 'upper':-1000000, },       # type：float; 低
+#     #     'T05': {'lower': -1000003, 'upper': -1000002, },       # type：float; 低低
+#     #     'T06': {'lower': -1000005, 'upper': -1000004, }, # type：float; 低低低，下限建议给默认的极小值
+#     #     'T_used':[1,1,1,1,1,1]   # type：int; 使用到的征兆通道给非零值
+#     # }
+#
+#     jsonfile = {  # for 1APA136MT_1
+#         'T03': {'lower': 1000003, 'upper': 1000004, },  # type：float; 高高高，上限建议给默认的极大值
+#         'T02': {'lower': 1000001, 'upper': 1000002, },  # type：float; 高高
+#         'T01': {'lower': 100, 'upper': 1000000, },  # type：float; 高
+#         'T04': {'lower': 4.7, 'upper': 5, },  # type：float; 低
+#         'T05': {'lower': 4.5, 'upper': 4.7, },  # type：float; 低低
+#         'T06': {'lower': -1000005, 'upper': 4.5, },  # type：float; 低低低，下限建议给默认的极小值
+#         'T_used': [1, 0, 0, 0, 0, 0]  # type：int; 使用到的征兆通道给非零值
+#     }
+#
+#     with open("threshold.json", "w") as f:
+#         json.dump(jsonfile, f)
+#         print("加载入文件完成...")

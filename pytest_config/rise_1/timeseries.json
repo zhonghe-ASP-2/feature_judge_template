@@ -1,0 +1,17 @@
+{
+    "IoTDB_path": "root/apache-iotdb-0.12.0-all-bin/",
+    "time_type": "past",
+    "resample_method": "average",
+    "trend_range_day": 31,
+    "resample_fre": 10,
+    "vibrate_window": 1,
+    "monotonicity_window": 10,
+    "z_window": 120,
+    "slope_method": "slope",
+    "segment_method": "jenkspy",
+    "classification_number": 4,
+    "id_monitor": "1RCP604MP",
+    "threshold_range_day": 0.01,
+    "ADF_pvalue": 0.05,
+    "time_point": "2022-02-24 00:00:00"
+}
